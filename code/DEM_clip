@@ -1,0 +1,41 @@
+# from Anna
+# data source: DEM is from https://imap.maryland.gov/pages/lidar-dem-download-files.aspx
+# data source: 2 boundaries of clip data is from kml file (google earth shapefiles
+#### goal: load and cut down size of the 2013 dem ####
+# library
+library("sf") #spatial objects and functionalities
+library(raster) #spatial objects and functionalities
+library(rgdal)
+library(rgdal)
+library(leaflet)
+library(rgeos)
+
+# open dem data
+dem2013<- raster("./Choptank/Nate/Storage_Capacity/I_Data/Caroline_DEM_2013_1m") #NLCD 2001 
+
+# open clip data
+jonesTNC <- readOGR("./Choptank/Data/jones_road_TNC.kml")
+jacksonTNC <- readOGR ("./Choptank/Data/jackson_lane_TNC.kml")
+
+# join together clip data
+jonesTNC <- gUnaryUnion(jonesTNC, id = jonesTNC@data$AREANAM)
+jacksonTNC <- gUnaryUnion(jacksonTNC, id = jacksonTNC@data$AREANAM)
+orig_crs <- crs(jonesTNC)
+
+# transform clip to DEM crs
+jonesTNC <- spTransform(jonesTNC, crs(dem2013))
+jacksonTNC <- spTransform(jacksonTNC, crs(dem2013))
+crs(dem2013)
+
+# crop DEM to areas
+jonesDEM <- crop(dem2013, extent(jonesTNC))
+jacksonDEM <- crop(dem2013, extent(jacksonTNC))
+
+# convert back to original projection
+jonesDEM <- projectRaster(jonesDEM, crs = orig_crs)
+jacksonDEM <- projectRaster(jacksonDEM, crs = orig_crs)
+
+# save raster
+writeRaster(jonesDEM,filename = "./Anna/jones_dem_2013",overwrite=T) # save map
+writeRaster(jacksonDEM,filename = "./Anna/jackson_dem_2013",overwrite=T) # save map
+
