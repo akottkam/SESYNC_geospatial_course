@@ -2,7 +2,8 @@
 # data source: DEM is from https://imap.maryland.gov/pages/lidar-dem-download-files.aspx
 # data source: 2 boundaries of clip data is from kml file (google earth shapefiles
 #### goal: load and cut down size of the 2013 dem ####
-# library
+
+# load packages
 library("sf") #spatial objects and functionalities
 library(raster) #spatial objects and functionalities
 library(rgdal)
@@ -10,22 +11,22 @@ library(rgdal)
 library(leaflet)
 library(rgeos)
 
-# open dem data
-dem2013<- raster("./Choptank/Nate/Storage_Capacity/I_Data/Caroline_DEM_2013_1m") #NLCD 2001 
+# load dem data
+dem2013<- raster("./Choptank/Nate/Storage_Capacity/I_Data/Caroline_DEM_2013_1m") 
 
-# open clip data
+# load clip data
 jonesTNC <- readOGR("./Choptank/Data/jones_road_TNC.kml")
 jacksonTNC <- readOGR ("./Choptank/Data/jackson_lane_TNC.kml")
 
-# join together clip data
+# make clip data usable from kml form
 jonesTNC <- gUnaryUnion(jonesTNC, id = jonesTNC@data$AREANAM)
 jacksonTNC <- gUnaryUnion(jacksonTNC, id = jacksonTNC@data$AREANAM)
-orig_crs <- crs(jonesTNC)
+orig_crs <- crs(jonesTNC) # learn about the crs of your polygon
 
 # transform clip to DEM crs
 jonesTNC <- spTransform(jonesTNC, crs(dem2013))
 jacksonTNC <- spTransform(jacksonTNC, crs(dem2013))
-crs(dem2013)
+crs(dem2013) # learn about the crs of your dem
 
 # crop DEM to areas
 jonesDEM <- crop(dem2013, extent(jonesTNC))
